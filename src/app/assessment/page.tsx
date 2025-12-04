@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, Suspense } from 'react';
 import Modal from '../../components/Modal';
 import Navbar from '../../components/Navbar';
 import { useSearchParams } from 'next/navigation';
@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 import { questions } from '../../lib/assessmentData';
 
-export default function AssessmentPage() {
+function AssessmentContent() {
     const [answers, setAnswers] = useState<{ [key: number]: number }>({});
     const [result, setResult] = useState<string | null>(null);
     const [scores, setScores] = useState<{ group1: number; group2: number; group3: number } | null>(null);
@@ -302,5 +302,13 @@ export default function AssessmentPage() {
                 </div>
             </main>
         </div>
+    );
+}
+
+export default function AssessmentPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+            <AssessmentContent />
+        </Suspense>
     );
 }

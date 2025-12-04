@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Modal from '../../../components/Modal';
 import Navbar from '../../../components/Navbar';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { questions } from '../../../lib/assessmentData';
 
-export default function EditAssessmentPage() {
+function EditAssessmentContent() {
     const [answers, setAnswers] = useState<{ [key: number]: number }>({});
     const [result, setResult] = useState<string | null>(null);
     const [originalResult, setOriginalResult] = useState<string | null>(null);
@@ -240,5 +240,13 @@ export default function EditAssessmentPage() {
                 </div>
             </main>
         </div>
+    );
+}
+
+export default function EditAssessmentPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+            <EditAssessmentContent />
+        </Suspense>
     );
 }
