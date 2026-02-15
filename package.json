@@ -9,13 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
-<<<<<<< HEAD
     "mongoose": "^8.23.0",
     "next": "^16.1.6",
-=======
-    "mongoose": "^8.20.1",
-    "next": "16.0.10",
->>>>>>> 042a53d64af148a542e00b34625aec823f3bd572
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-icons": "^5.5.0",
