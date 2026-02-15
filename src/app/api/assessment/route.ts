@@ -1,10 +1,9 @@
+
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import Assessment from '@/models/Assessment';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(request: Request) {
     try {
-        await dbConnect();
         const body = await request.json();
         const { hn, answers, result, scores } = body;
 
@@ -15,34 +14,33 @@ export async function POST(request: Request) {
             );
         }
 
-        // Check if assessment already exists for this HN
-        const existingAssessment = await Assessment.findOne({ hn });
-
-        if (existingAssessment) {
-            // Update existing
-            existingAssessment.answers = answers;
-            existingAssessment.result = result;
-            existingAssessment.scores = scores;
-            await existingAssessment.save();
-            return NextResponse.json({ success: true, data: existingAssessment }, { status: 200 });
-        } else {
-            // Create new
-            const newAssessment = await Assessment.create({
+        // Use upsert to handle both create and update based on the unique 'hn' constraint
+        const { data, error } = await supabase
+            .from('assessments')
+            .upsert({
                 hn,
                 answers,
                 result,
                 scores,
-            });
-            return NextResponse.json({ success: true, data: newAssessment }, { status: 201 });
+                // created_at is automatic, updated_at logic is not strictly needed for this simple case or can be handled if column exists
+            }, { onConflict: 'hn' })
+            .select()
+            .single();
+
+        if (error) {
+            throw error;
         }
-    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-        return NextResponse.json({ error: error.message }, { status: 500 });
+
+        return NextResponse.json({ success: true, data }, { status: 200 });
+
+    } catch (error: any) {
+        console.error('Database Error:', error);
+        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
     }
 }
 
 export async function GET(request: Request) {
     try {
-        await dbConnect();
         const { searchParams } = new URL(request.url);
         const hn = searchParams.get('hn');
 
@@ -53,17 +51,26 @@ export async function GET(request: Request) {
             );
         }
 
-        const assessment = await Assessment.findOne({ hn }).lean();
+        const { data, error } = await supabase
+            .from('assessments')
+            .select('*')
+            .eq('hn', hn)
+            .single();
 
-        if (!assessment) {
-            return NextResponse.json(
-                { error: 'ไม่พบข้อมูลในระบบ' },
-                { status: 404 }
-            );
+        if (error) {
+            // Check if error is "No rows found" which corresponds to 404
+            if (error.code === 'PGRST116') {
+                return NextResponse.json(
+                    { error: 'ไม่พบข้อมูลในระบบ' },
+                    { status: 404 }
+                );
+            }
+            throw error;
         }
 
-        return NextResponse.json({ success: true, data: assessment }, { status: 200 });
-    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ success: true, data }, { status: 200 });
+    } catch (error: any) {
+        console.error('Database Error:', error);
+        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
     }
 }

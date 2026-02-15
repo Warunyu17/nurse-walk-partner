@@ -1,31 +1,36 @@
+
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import Assessment from '@/models/Assessment';
+import { supabase } from '@/lib/supabase';
 
 export async function GET() {
     try {
-        await dbConnect();
+        // Fetch all results to calculate stats
+        // Note: For large datasets, consider using a database function (RPC) or View for better performance
+        const { data, error } = await supabase
+            .from('assessments')
+            .select('result');
 
-        const stats = await Assessment.aggregate([
-            {
-                $group: {
-                    _id: "$result",
-                    count: { $sum: 1 }
-                }
+        if (error) throw error;
+
+        // Group and count results in application logic
+        const resultStats = data.reduce((acc: { [key: string]: number }, curr: { result: any }) => {
+            const res = curr.result;
+            if (res) {
+                acc[res] = (acc[res] || 0) + 1;
             }
-        ]);
+            return acc;
+        }, {});
 
         // Format data for recharts (e.g., [{ name: 'Result A', count: 10 }, ...])
-        const formattedStats = stats.map(item => ({
-            name: item._id,
-            count: item.count
+        const formattedStats = Object.keys(resultStats).map(key => ({
+            name: key,
+            count: resultStats[key]
         }));
 
         const response = NextResponse.json({ success: true, data: formattedStats }, { status: 200 });
 
-        // Cache for 10s, serve stale while revalidating for up to 59s
-        // This dramatically reduces cold start impact on Vercel
-        response.headers.set('Cache-Control', 's-maxage=10, stale-while-revalidate=59');
+        // Disable caching to ensure real-time updates when navigating back from edit
+        response.headers.set('Cache-Control', 'no-store, max-age=0');
 
         return response;
     } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any

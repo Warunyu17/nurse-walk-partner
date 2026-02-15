@@ -22,7 +22,7 @@ function EditAssessmentContent() {
     const [modalConfig, setModalConfig] = useState({
         isOpen: false,
         title: "",
-        message: "",
+        message: "" as React.ReactNode,
         isConfirmOnly: true,
         onConfirm: () => { },
         onCancel: () => { }
@@ -32,7 +32,7 @@ function EditAssessmentContent() {
         setModalConfig(prev => ({ ...prev, isOpen: false }));
     };
 
-    const showAlert = (title: string, message: string, onConfirm?: () => void) => {
+    const showAlert = (title: string, message: React.ReactNode, onConfirm?: () => void) => {
         setModalConfig({
             isOpen: true,
             title,
@@ -46,15 +46,21 @@ function EditAssessmentContent() {
         });
     };
 
+    // Initialize HN from session storage
     useEffect(() => {
-        const hnParam = searchParams.get('hn');
-        if (hnParam) {
-            setHn(hnParam);
-            fetchAssessment(hnParam);
+        // Try to get HN from session storage first (secure flow)
+        const storedHn = sessionStorage.getItem("edit_hn");
+
+        if (storedHn) {
+            setHn(storedHn);
+            fetchAssessment(storedHn);
         } else {
-            showAlert("ข้อผิดพลาด", "ไม่พบเลข HN", () => router.push('/statistics'));
+            // Strict session check as requested
+            showAlert("ไม่สามารถระบุตัวตนผู้ป่วย", "กรุณาเลือกผู้ป่วยจากหน้าสถิติอีกครั้ง", () => {
+                router.push('/statistics');
+            });
         }
-    }, [searchParams, router]);
+    }, [router]);
 
     useEffect(() => {
         if (result) {
@@ -138,25 +144,41 @@ function EditAssessmentContent() {
             const data = await response.json();
 
             if (response.ok) {
-                let message = "บันทึกผลการประเมินใหม่เรียบร้อยแล้ว";
+                let message: React.ReactNode = "บันทึกผลการประเมินใหม่เรียบร้อยแล้ว";
                 if (originalResult) {
                     if (originalResult === resultText) {
-                        message += "\n(ผลการประเมินเหมือนเดิม)";
+                        message = (
+                            <div>
+                                บันทึกผลการประเมินใหม่เรียบร้อยแล้ว <br />
+                                <span className="text-blue-600 font-semibold">(ผลการประเมินเหมือนเดิม)</span>
+                            </div>
+                        );
                     } else {
-                        message += `\n(ผลการประเมินเปลี่ยนจาก "${originalResult}" เป็น "${resultText}")`;
+                        const getColor = (res: string) => {
+                            if (res === "ให้ลุกนั่งบนเตียง") return "#FF8042"; // Orange
+                            if (res === "ลุกนั่งข้างเตียง") return "#F59E0B"; // Darker Yellow for text readability
+                            if (res === "ยืนและลุกเดิน") return "#00C49F"; // Green
+                            return "#6B7280"; // Gray
+                        };
+
+                        message = (
+                            <div>
+                                บันทึกผลการประเมินใหม่เรียบร้อยแล้ว <br />
+                                (ผลการประเมินเปลี่ยนจาก <span style={{ color: getColor(originalResult), fontWeight: 'bold' }}>"{originalResult}"</span> เป็น <span style={{ color: getColor(resultText), fontWeight: 'bold' }}>"{resultText}"</span>)
+                            </div>
+                        );
                     }
                 }
 
                 // Update original result for next save
                 setOriginalResult(resultText);
 
-                // Delay slightly to let the user see the result scroll
-                setTimeout(() => {
-                    showAlert(
-                        "บันทึกสำเร็จ",
-                        message
-                    );
-                }, 500);
+                // Show success alert immediately
+                showAlert(
+                    "บันทึกสำเร็จ",
+                    message,
+                    () => router.push('/statistics')
+                );
             } else {
                 showAlert("ข้อผิดพลาด", `เกิดข้อผิดพลาด: ${data.error}`);
             }
@@ -192,13 +214,22 @@ function EditAssessmentContent() {
                     </div>
 
                     <h1 className="text-3xl md:text-4xl font-bold text-blue-800 mb-8 text-center mt-8">
-                        แก้ไขการประเมิน (HN: {hn})
+                        ทำการประเมินอีกครั้ง (HN: {hn})
                     </h1>
 
                     {result && (
                         <div ref={resultRef} className="mb-8 text-center animate-fade-in w-full scroll-mt-24">
-                            <p className="text-gray-600 text-lg mb-2">ผลการประเมินของคุณคือ:</p>
-                            <div className="text-3xl md:text-4xl font-extrabold text-white bg-gradient-to-r from-blue-600 to-teal-500 p-6 rounded-xl shadow-md inline-block w-full md:w-auto mb-6">
+                            <p className="text-gray-600 text-lg mb-2">ผลการประเมินปัจจุบันของคุณคือ:</p>
+                            <div
+                                className={`text-3xl md:text-4xl font-extrabold text-white p-6 rounded-xl shadow-md inline-block w-full md:w-auto mb-6 ${result === "ให้ลุกนั่งบนเตียง" ? "bg-[#FF8042]" :
+                                    result === "ลุกนั่งข้างเตียง" ? "bg-[#FFBB28]" :
+                                        result === "ยืนและลุกเดิน" ? "bg-[#00C49F]" :
+                                            "bg-gray-400"
+                                    }`}
+                                style={{
+                                    boxShadow: result === "ลุกนั่งข้างเตียง" ? "0 4px 6px -1px rgba(255, 187, 40, 0.4), 0 2px 4px -1px rgba(255, 187, 40, 0.2)" : undefined
+                                }}
+                            >
                                 {result}
                             </div>
                         </div>

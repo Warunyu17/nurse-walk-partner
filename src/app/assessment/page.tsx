@@ -236,7 +236,16 @@ function AssessmentContent() {
                     {result && (
                         <div ref={resultRef} className="mb-8 text-center animate-fade-in w-full scroll-mt-24">
                             <p className="text-gray-600 text-lg mb-2">ผลการประเมินของคุณคือ:</p>
-                            <div className="text-3xl md:text-4xl font-extrabold text-white bg-gradient-to-r from-blue-600 to-teal-500 p-6 rounded-xl shadow-md inline-block w-full md:w-auto mb-6">
+                            <div
+                                className={`text-3xl md:text-4xl font-extrabold text-white p-6 rounded-xl shadow-md inline-block w-full md:w-auto mb-6 ${result === "ให้ลุกนั่งบนเตียง" ? "bg-[#FF8042]" :
+                                        result === "ลุกนั่งข้างเตียง" ? "bg-[#FFBB28]" :
+                                            result === "ยืนและลุกเดิน" ? "bg-[#00C49F]" :
+                                                "bg-gray-400"
+                                    }`}
+                                style={{
+                                    boxShadow: result === "ลุกนั่งข้างเตียง" ? "0 4px 6px -1px rgba(255, 187, 40, 0.4), 0 2px 4px -1px rgba(255, 187, 40, 0.2)" : undefined
+                                }}
+                            >
                                 {result}
                             </div>
 
