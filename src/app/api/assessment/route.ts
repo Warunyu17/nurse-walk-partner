@@ -53,7 +53,7 @@ export async function GET(request: Request) {
             );
         }
 
-        const assessment = await Assessment.findOne({ hn });
+        const assessment = await Assessment.findOne({ hn }).lean();
 
         if (!assessment) {
             return NextResponse.json(
