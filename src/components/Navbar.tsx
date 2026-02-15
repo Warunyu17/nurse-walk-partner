@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { FaWalking, FaBars, FaTimes } from 'react-icons/fa';
+import { FaBars, FaTimes } from 'react-icons/fa';
 
 const Navbar: React.FC = () => {
     const pathname = usePathname();
@@ -19,9 +20,15 @@ const Navbar: React.FC = () => {
                 <div className="flex justify-between items-center">
                     {/* Logo Section */}
                     <div className="flex items-center">
-                        <Link href="/" className="flex items-center text-2xl font-bold text-gray-800">
-                            <FaWalking className="w-8 h-8 mr-2 text-gray-800" />
-                            ชวนเดิน เพลินสุขภาพ
+                        <Link href="/" className="flex items-center">
+                            <Image
+                                src="/Text.jpg"
+                                alt="Nurse Walk Partner"
+                                width={180}
+                                height={60}
+                                className="object-contain h-10 w-auto -ml-6"
+                                priority
+                            />
                         </Link>
                     </div>
 

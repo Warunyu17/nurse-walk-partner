@@ -2,7 +2,7 @@ import "@/styles/globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "ชวนเดิน เพลินสุขภาพ",
+  title: "Nurse Walk Partner",
   description: "โปรแกรมการเดินสำหรับผู้ป่วยผ่าตัดเปิดหน้าท้อง",
   icons: {
     icon: "/logo.jpg",

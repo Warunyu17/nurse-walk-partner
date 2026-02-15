@@ -21,14 +21,14 @@ export default function Home() {
 
                         {/* Left Content */}
                         <div className="w-full lg:w-1/2 flex flex-col justify-center text-center lg:text-left">
-                            <h1 className="text-4xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-teal-500 leading-tight drop-shadow-sm">
-                                ชวนเดิน <br className="lg:hidden" /> เพลินสุขภาพ
+                            <h1 className="text-4xl lg:text-5xl font-extrabold leading-tight drop-shadow-sm">
+                                <span className="text-[#0e4a8f]">Nurse</span> <span className="text-[#5dae28]">Walk</span> <br className="lg:hidden" /> <span className="text-[#0e4a8f]">Partner</span>
                             </h1>
                             <div className="mt-4 space-y-2">
-                                <p className="text-2xl text-blue-800 font-bold">
+                                <p className="text-2xl text-[#0e4a8f] font-bold">
                                     โปรแกรมการเดินสำหรับ
                                 </p>
-                                <p className="text-2xl text-blue-800 font-bold">
+                                <p className="text-2xl text-[#0e4a8f] font-bold">
                                     ผู้ป่วยผ่าตัดเปิดหน้าท้อง
                                 </p>
                             </div>
@@ -39,7 +39,7 @@ export default function Home() {
                             <div className="relative w-full max-w-xs h-auto flex justify-center">
                                 <Image
                                     src="/logo.jpg"
-                                    alt="ชวนเดิน เพลินสุขภาพ"
+                                    alt="Nurse Walk Partner"
                                     width={300}
                                     height={300}
                                     className="rounded-lg object-contain"
