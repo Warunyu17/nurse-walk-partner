@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function StatisticsPage() {
     const [hn, setHn] = useState("");
@@ -82,7 +83,15 @@ export default function StatisticsPage() {
                 <div className="max-w-5xl mx-auto space-y-12">
 
                     {/* Section 1: Assessment Statistics (Custom Bar Chart) */}
-                    <section className="bg-white p-4 md:p-8 rounded-2xl shadow-lg border border-gray-100">
+                    <section className="bg-white p-4 md:p-8 rounded-2xl shadow-lg border border-gray-100 relative">
+                        <div className="absolute top-4 left-4 md:top-6 md:left-6">
+                            <Link href="/" className="flex items-center text-gray-500 hover:text-blue-600 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                                </svg>
+                                ย้อนกลับ
+                            </Link>
+                        </div>
                         <h1 className="text-2xl md:text-3xl font-bold text-blue-800 mb-8 md:mb-12 text-center">
                             สถิติการประเมินภาพรวม
                         </h1>
