@@ -56,8 +56,8 @@ function EditAssessmentContent() {
             fetchAssessment(storedHn);
         } else {
             // Strict session check as requested
-            showAlert("ไม่สามารถระบุตัวตนผู้ป่วย", "กรุณาเลือกผู้ป่วยจากหน้าสถิติอีกครั้ง", () => {
-                router.push('/statistics');
+            showAlert("ไม่สามารถระบุตัวตนผู้ป่วย", "กรุณาเลือกผู้ป่วยจากหน้าประวัติการประเมินอีกครั้ง", () => {
+                router.push('/history');
             });
         }
     }, [router]);
@@ -78,11 +78,11 @@ function EditAssessmentContent() {
                 setOriginalResult(data.data.result);
                 setScores(data.data.scores);
             } else {
-                showAlert("ข้อผิดพลาด", "ไม่พบข้อมูลการประเมิน", () => router.push('/statistics'));
+                showAlert("ข้อผิดพลาด", "ไม่พบข้อมูลการประเมิน", () => router.push('/history'));
             }
         } catch (error) {
             console.error("Error fetching assessment:", error);
-            showAlert("ข้อผิดพลาด", "เกิดข้อผิดพลาดในการโหลดข้อมูล", () => router.push('/statistics'));
+            showAlert("ข้อผิดพลาด", "เกิดข้อผิดพลาดในการโหลดข้อมูล", () => router.push('/history'));
         }
     };
 
@@ -177,7 +177,7 @@ function EditAssessmentContent() {
                 showAlert(
                     "บันทึกสำเร็จ",
                     message,
-                    () => router.push('/statistics')
+                    () => router.push('/history')
                 );
             } else {
                 showAlert("ข้อผิดพลาด", `เกิดข้อผิดพลาด: ${data.error}`);
@@ -205,7 +205,7 @@ function EditAssessmentContent() {
             <main className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8 mb-12 flex-grow">
                 <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100 max-w-4xl mx-auto relative">
                     <div className="absolute top-6 left-6">
-                        <Link href="/statistics" className="flex items-center text-gray-500 hover:text-blue-600 transition-colors">
+                        <Link href="/history" className="flex items-center text-gray-500 hover:text-blue-600 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                             </svg>
