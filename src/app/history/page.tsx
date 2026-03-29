@@ -1,32 +1,81 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import Navbar from '../../components/Navbar';
-import { useRouter } from 'next/navigation';
+import ExerciseModal from '../../components/ExerciseModal';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function HistoryPage() {
+type HistoryRecord = {
+    id: number;
+    hn: string;
+    assessment_no: number;
+    assessment_date: string;
+    result: string;
+    created_at: string;
+};
+
+type HistoryResponse = {
+    success: boolean;
+    data?: {
+        hn: string;
+        totalAssessments: number;
+        records: HistoryRecord[];
+    };
+    warning?: string;
+    error?: string;
+};
+
+function getResultBadgeClass(result: string) {
+    if (result === "ให้ลุกนั่งบนเตียง") return "bg-[#FF8042]";
+    if (result === "ลุกนั่งข้างเตียง") return "bg-[#FFBB28]";
+    if (result === "ยืนและลุกเดิน") return "bg-[#00C49F]";
+    return "bg-gray-400";
+}
+
+function formatThaiDateTime(value: string) {
+    const date = new Date(value);
+    return {
+        date: date.toLocaleDateString('th-TH', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        }),
+        time: date.toLocaleTimeString('th-TH', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        }),
+    };
+}
+
+function HistoryContent() {
     const [hn, setHn] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [assessmentData, setAssessmentData] = useState<any | null>(null);
+    const [warning, setWarning] = useState<string | null>(null);
+    const [historyData, setHistoryData] = useState<HistoryResponse["data"] | null>(null);
+    const [exerciseModalOpen, setExerciseModalOpen] = useState(false);
     const router = useRouter();
+    const searchParams = useSearchParams();
 
-    const handleSearch = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!hn.trim()) return;
+    const searchByHn = useCallback(async (hnValue: string) => {
+        if (!hnValue.trim()) return;
 
         setLoading(true);
         setError(null);
-        setAssessmentData(null);
+        setWarning(null);
+        setHistoryData(null);
 
         try {
-            const response = await fetch(`/api/assessment?hn=${hn.trim()}`);
-            const data = await response.json();
+            const response = await fetch(`/api/assessment/history?hn=${hnValue.trim()}`);
+            const data: HistoryResponse = await response.json();
 
-            if (response.ok) {
-                setAssessmentData(data.data);
+            if (response.ok && data.data) {
+                setHistoryData(data.data);
+                if (data.warning === 'history_table_not_available') {
+                    setWarning("แสดงผลเฉพาะข้อมูลล่าสุด เนื่องจากยังไม่สามารถอ่านตารางประวัติได้");
+                }
             } else {
                 setError(data.error || "ไม่พบข้อมูลในระบบ");
             }
@@ -35,11 +84,26 @@ export default function HistoryPage() {
         } finally {
             setLoading(false);
         }
+    }, []);
+
+    // Auto-fill and auto-search when redirected with ?hn= query param
+    useEffect(() => {
+        const hnParam = searchParams.get('hn');
+        if (hnParam) {
+            setHn(hnParam);
+            searchByHn(hnParam);
+        }
+    }, [searchParams, searchByHn]);
+
+    const handleSearch = async (e: React.FormEvent) => {
+        e.preventDefault();
+        searchByHn(hn);
     };
 
     const handleEdit = () => {
-        if (hn) {
-            sessionStorage.setItem("edit_hn", hn);
+        const selectedHn = historyData?.hn ?? hn.trim();
+        if (selectedHn) {
+            sessionStorage.setItem("edit_hn", selectedHn);
             router.push('/assessment/edit');
         }
     };
@@ -60,7 +124,7 @@ export default function HistoryPage() {
                                     ย้อนกลับ
                                 </Link>
                             </div>
-                            <h1 className="text-3xl font-bold text-blue-800 text-center w-full pt-4 md:pt-8">
+                            <h1 className="text-3xl font-bold text-[#0e4a8f] text-center w-full pt-4 md:pt-8">
                                 ดูประวัติการประเมิน
                             </h1>
                         </div>
@@ -82,63 +146,80 @@ export default function HistoryPage() {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow transition-colors disabled:opacity-50"
+                                    className="bg-[#0e4a8f] hover:bg-[#0a3a72] text-white font-bold py-3 px-6 rounded-lg shadow transition-colors disabled:opacity-50"
                                 >
                                     {loading ? 'ค้นหา...' : 'ค้นหา'}
                                 </button>
                             </div>
                             {error && <p className="text-red-500 mt-2 text-center">{error}</p>}
+                            {warning && <p className="text-amber-600 mt-2 text-center">{warning}</p>}
                         </form>
 
-                        {assessmentData && (
-                            <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 animate-fade-in">
-                                <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-6">
-                                    <div className="w-full md:w-auto">
-                                        <h2 className="text-2xl font-bold text-gray-800 mb-2">ผลการประเมิน</h2>
-                                        <p className="text-gray-600">HN: <span className="font-semibold text-gray-900">{assessmentData.hn}</span></p>
-                                        <p className="text-gray-600">
-                                            วันที่ประเมิน: <span className="font-semibold text-gray-900">
-                                                {new Date(assessmentData.created_at || assessmentData.createdAt).toLocaleDateString('th-TH', {
-                                                    day: 'numeric',
-                                                    month: 'long',
-                                                    year: 'numeric'
-                                                })} เวลา {new Date(assessmentData.created_at || assessmentData.createdAt).toLocaleTimeString('th-TH', {
-                                                    hour: '2-digit',
-                                                    minute: '2-digit',
-                                                    hour12: false
-                                                })} น.
-                                            </span>
-                                        </p>
-                                    </div>
-                                    <div className="w-full md:w-auto mt-2 md:mt-0">
-                                        <div
-                                            className={`text-xl font-bold text-white px-6 py-3 rounded-lg inline-block w-full md:w-auto text-center shadow-md ${assessmentData.result === "ให้ลุกนั่งบนเตียง" ? "bg-[#FF8042]" :
-                                                assessmentData.result === "ลุกนั่งข้างเตียง" ? "bg-[#FFBB28]" :
-                                                    assessmentData.result === "ยืนและลุกเดิน" ? "bg-[#00C49F]" :
-                                                        "bg-gray-400"
-                                                }`}
-                                        >
-                                            {assessmentData.result}
+                        {historyData && (
+                            <div className="space-y-4 animate-fade-in">
+                                <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                        <div>
+                                            <h2 className="text-2xl font-bold text-gray-800 mb-2">ประวัติการประเมิน</h2>
+                                            <p className="text-gray-600">HN: <span className="font-semibold text-gray-900">{historyData.hn}</span></p>
+                                            <p className="text-gray-600">จำนวนครั้งที่ประเมิน: <span className="font-semibold text-gray-900">{historyData.totalAssessments} ครั้ง</span></p>
                                         </div>
+                                        <button
+                                            onClick={handleEdit}
+                                            className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-8 rounded-lg shadow transition-colors flex items-center self-center"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                            </svg>
+                                            ประเมินอีกครั้ง
+                                        </button>
                                     </div>
                                 </div>
 
-                                <div className="flex justify-center">
-                                    <button
-                                        onClick={handleEdit}
-                                        className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-8 rounded-lg shadow transition-colors flex items-center"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                        </svg>
-                                        ประเมินอีกครั้ง
-                                    </button>
+                                <div className="space-y-3">
+                                    {historyData.records.map((record) => {
+                                        const { date, time } = formatThaiDateTime(record.assessment_date || record.created_at);
+                                        return (
+                                            <div key={record.id} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                                                <div className="space-y-2">
+                                                    <p className="text-gray-800 font-bold text-lg">ครั้งที่ {record.assessment_no}</p>
+                                                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                                                        <p className="text-gray-600 md:whitespace-nowrap">
+                                                            วันที่ประเมิน: <span className="font-semibold text-gray-900">{date} เวลา {time} น.</span>
+                                                        </p>
+                                                        <div className="flex items-center gap-2 md:shrink-0">
+                                                            <span className="text-base font-semibold text-gray-900">ผลการประเมิน :</span>
+                                                            <div
+                                                                onClick={() => setExerciseModalOpen(true)}
+                                                                className={`text-base font-bold text-white px-4 py-2 rounded-lg text-center shadow cursor-pointer hover:scale-105 transition-transform ${getResultBadgeClass(record.result)}`}
+                                                            >
+                                                                {record.result}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
                     </section>
                 </div>
-            </main>
-        </div>
+            </main >
+
+            <ExerciseModal
+                isOpen={exerciseModalOpen}
+                onClose={() => setExerciseModalOpen(false)}
+            />
+        </div >
+    );
+}
+
+export default function HistoryPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+            <HistoryContent />
+        </Suspense>
     );
 }

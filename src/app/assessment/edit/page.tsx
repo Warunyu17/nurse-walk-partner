@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Modal from '../../../components/Modal';
+import ExerciseModal from '../../../components/ExerciseModal';
 import Navbar from '../../../components/Navbar';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -14,6 +15,7 @@ function EditAssessmentContent() {
     const [scores, setScores] = useState<{ group1: number; group2: number; group3: number } | null>(null);
     const [hn, setHn] = useState<string>("");
     const [isSaving, setIsSaving] = useState(false);
+    const [exerciseModalOpen, setExerciseModalOpen] = useState(false);
     const searchParams = useSearchParams();
     const router = useRouter();
     const resultRef = useRef<HTMLDivElement>(null);
@@ -24,6 +26,8 @@ function EditAssessmentContent() {
         title: "",
         message: "" as React.ReactNode,
         isConfirmOnly: true,
+        confirmText: "ตกลง",
+        cancelText: "ยกเลิก",
         onConfirm: () => { },
         onCancel: () => { }
     });
@@ -38,6 +42,8 @@ function EditAssessmentContent() {
             title,
             message,
             isConfirmOnly: true,
+            confirmText: "ตกลง",
+            cancelText: "ยกเลิก",
             onConfirm: () => {
                 closeModal();
                 if (onConfirm) onConfirm();
@@ -173,12 +179,22 @@ function EditAssessmentContent() {
                 // Update original result for next save
                 setOriginalResult(resultText);
 
-                // Show success alert immediately
-                showAlert(
-                    "บันทึกสำเร็จ",
+                // Show success with two options: close or go to history
+                setModalConfig({
+                    isOpen: true,
+                    title: "บันทึกสำเร็จ",
                     message,
-                    () => router.push('/history')
-                );
+                    isConfirmOnly: false,
+                    cancelText: "ปิด",
+                    confirmText: "ไปหน้าประวัติการประเมิน",
+                    onCancel: () => {
+                        closeModal();
+                    },
+                    onConfirm: () => {
+                        closeModal();
+                        router.push(`/history?hn=${encodeURIComponent(hn.trim())}`);
+                    }
+                });
             } else {
                 showAlert("ข้อผิดพลาด", `เกิดข้อผิดพลาด: ${data.error}`);
             }
@@ -200,6 +216,8 @@ function EditAssessmentContent() {
                 onConfirm={modalConfig.onConfirm}
                 onCancel={modalConfig.onCancel}
                 isConfirmOnly={modalConfig.isConfirmOnly}
+                confirmText={modalConfig.confirmText}
+                cancelText={modalConfig.cancelText}
             />
 
             <main className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8 mb-12 flex-grow">
@@ -213,7 +231,7 @@ function EditAssessmentContent() {
                         </Link>
                     </div>
 
-                    <h1 className="text-3xl md:text-4xl font-bold text-blue-800 mb-8 text-center mt-8">
+                    <h1 className="text-3xl md:text-4xl font-bold text-[#0e4a8f] mb-8 text-center mt-8">
                         ทำการประเมินอีกครั้ง (HN: {hn})
                     </h1>
 
@@ -221,7 +239,8 @@ function EditAssessmentContent() {
                         <div ref={resultRef} className="mb-8 text-center animate-fade-in w-full scroll-mt-24">
                             <p className="text-gray-600 text-lg mb-2">ผลการประเมินปัจจุบันของคุณคือ:</p>
                             <div
-                                className={`text-3xl md:text-4xl font-extrabold text-white p-6 rounded-xl shadow-md inline-block w-full md:w-auto mb-6 ${result === "ให้ลุกนั่งบนเตียง" ? "bg-[#FF8042]" :
+                                onClick={() => setExerciseModalOpen(true)}
+                                className={`text-3xl md:text-4xl font-extrabold text-white p-6 rounded-xl shadow-md inline-block w-full md:w-auto mb-6 cursor-pointer hover:scale-105 transition-transform ${result === "ให้ลุกนั่งบนเตียง" ? "bg-[#FF8042]" :
                                     result === "ลุกนั่งข้างเตียง" ? "bg-[#FFBB28]" :
                                         result === "ยืนและลุกเดิน" ? "bg-[#00C49F]" :
                                             "bg-gray-400"
@@ -231,6 +250,7 @@ function EditAssessmentContent() {
                                 }}
                             >
                                 {result}
+                                <p className="text-sm font-normal mt-2 opacity-80">กดเพื่อดูแนวทางการปฏิบัติ</p>
                             </div>
                         </div>
                     )}
@@ -263,13 +283,18 @@ function EditAssessmentContent() {
                         <button
                             onClick={handleReevaluateAndSave}
                             disabled={isSaving}
-                            className={`bg-blue-600 hover:bg-blue-700 text-white text-xl font-bold py-3 px-12 rounded-full shadow-lg transition-transform transform hover:scale-105 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`bg-[#0e4a8f] hover:bg-[#0a3a72] text-white text-xl font-bold py-3 px-12 rounded-full shadow-lg transition-transform transform hover:scale-105 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             {isSaving ? 'กำลังบันทึก...' : 'ประเมินอีกครั้ง'}
                         </button>
                     </div>
                 </div>
             </main>
+
+            <ExerciseModal
+                isOpen={exerciseModalOpen}
+                onClose={() => setExerciseModalOpen(false)}
+            />
         </div>
     );
 }

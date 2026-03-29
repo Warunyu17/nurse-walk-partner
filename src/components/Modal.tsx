@@ -32,14 +32,14 @@ const Modal: React.FC<ModalProps> = ({
                     {!isConfirmOnly && onCancel && (
                         <button
                             onClick={onCancel}
-                            className="px-6 py-2.5 rounded-lg text-gray-600 font-semibold hover:bg-gray-100 transition-colors"
+                            className="px-6 py-2.5 rounded-lg text-gray-600 font-semibold hover:bg-gray-100 transition-colors border border-gray-300"
                         >
                             {cancelText}
                         </button>
                     )}
                     <button
                         onClick={onConfirm}
-                        className="px-6 py-2.5 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-md transition-transform transform hover:scale-105"
+                        className="px-6 py-2.5 rounded-lg bg-[#0e4a8f] text-white font-semibold hover:bg-[#0a3a72] shadow-md transition-transform transform hover:scale-105"
                     >
                         {confirmText}
                     </button>

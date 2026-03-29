@@ -20,7 +20,7 @@ export default function AboutPage() {
                             ย้อนกลับ
                         </Link>
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-bold text-blue-800 mb-8 text-center mt-6">
+                    <h1 className="text-4xl md:text-5xl font-bold text-[#0e4a8f] mb-8 text-center mt-6">
                         ที่มาและความสำคัญ
                     </h1>
 

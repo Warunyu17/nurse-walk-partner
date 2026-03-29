@@ -46,25 +46,25 @@ const Navbar: React.FC = () => {
                     <div className="hidden md:flex items-center space-x-6 text-sm">
                         <Link
                             href="/about"
-                            className={`${isActive('/about') ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'} font-bold transition-colors text-base`}
+                            className={`${isActive('/about') ? 'text-[#0e4a8f]' : 'text-gray-600 hover:text-gray-900'} font-bold transition-colors text-base`}
                         >
                             ที่มาและความสำคัญ
                         </Link>
                         <Link
                             href="/statistics"
-                            className={`${isActive('/statistics') ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'} font-bold transition-colors text-base`}
+                            className={`${isActive('/statistics') ? 'text-[#0e4a8f]' : 'text-gray-600 hover:text-gray-900'} font-bold transition-colors text-base`}
                         >
                             สถิติการประเมิน
                         </Link>
                         <Link
                             href="/history"
-                            className={`${isActive('/history') ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'} font-bold transition-colors text-base`}
+                            className={`${isActive('/history') ? 'text-[#0e4a8f]' : 'text-gray-600 hover:text-gray-900'} font-bold transition-colors text-base`}
                         >
                             ประวัติการประเมิน
                         </Link>
                         <Link
                             href="/assessment"
-                            className="bg-blue-400 hover:bg-blue-500 text-white font-bold py-2.5 px-7 rounded-lg shadow-lg transition-colors text-lg"
+                            className="bg-[#0e4a8f] hover:bg-[#0a3a72] text-white font-bold py-2.5 px-7 rounded-lg shadow-lg transition-colors text-lg"
                         >
                             เริ่มการประเมิน
                         </Link>
@@ -76,21 +76,21 @@ const Navbar: React.FC = () => {
                     <div className="md:hidden mt-4 flex flex-col divide-y divide-gray-200 border-t border-gray-200 text-sm text-center">
                         <Link
                             href="/about"
-                            className={`${isActive('/about') ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'} font-bold transition-colors py-4 block text-xl`}
+                            className={`${isActive('/about') ? 'text-[#0e4a8f]' : 'text-gray-600 hover:text-gray-900'} font-bold transition-colors py-4 block text-xl`}
                             onClick={() => setIsOpen(false)}
                         >
                             ที่มาและความสำคัญ
                         </Link>
                         <Link
                             href="/statistics"
-                            className={`${isActive('/statistics') ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'} font-bold transition-colors py-4 block text-xl`}
+                            className={`${isActive('/statistics') ? 'text-[#0e4a8f]' : 'text-gray-600 hover:text-gray-900'} font-bold transition-colors py-4 block text-xl`}
                             onClick={() => setIsOpen(false)}
                         >
                             สถิติการประเมิน
                         </Link>
                         <Link
                             href="/history"
-                            className={`${isActive('/history') ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'} font-bold transition-colors py-4 block text-xl`}
+                            className={`${isActive('/history') ? 'text-[#0e4a8f]' : 'text-gray-600 hover:text-gray-900'} font-bold transition-colors py-4 block text-xl`}
                             onClick={() => setIsOpen(false)}
                         >
                             ประวัติการประเมิน
@@ -98,7 +98,7 @@ const Navbar: React.FC = () => {
                         <div className="pt-4 pb-1">
                             <Link
                                 href="/assessment"
-                                className="bg-blue-400 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-colors inline-block text-xl"
+                                className="bg-[#0e4a8f] hover:bg-[#0a3a72] text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-colors inline-block text-xl"
                                 onClick={() => setIsOpen(false)}
                             >
                                 เริ่มการประเมิน

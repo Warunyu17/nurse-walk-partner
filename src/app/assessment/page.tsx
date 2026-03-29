@@ -2,8 +2,9 @@
 
 import React, { useState, useRef, useEffect, Suspense } from 'react';
 import Modal from '../../components/Modal';
+import ExerciseModal from '../../components/ExerciseModal';
 import Navbar from '../../components/Navbar';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 import { questions } from '../../lib/assessmentData';
@@ -14,15 +15,19 @@ function AssessmentContent() {
     const [scores, setScores] = useState<{ group1: number; group2: number; group3: number } | null>(null);
     const [hn, setHn] = useState<string>("");
     const [isSaving, setIsSaving] = useState(false);
+    const [exerciseModalOpen, setExerciseModalOpen] = useState(false);
     const resultRef = useRef<HTMLDivElement>(null);
     const searchParams = useSearchParams();
+    const router = useRouter();
 
     // Modal State
     const [modalConfig, setModalConfig] = useState({
         isOpen: false,
         title: "",
-        message: "",
+        message: "" as React.ReactNode,
         isConfirmOnly: true,
+        confirmText: "ตกลง",
+        cancelText: "ยกเลิก",
         onConfirm: () => { },
         onCancel: () => { }
     });
@@ -37,6 +42,8 @@ function AssessmentContent() {
             title,
             message,
             isConfirmOnly: true,
+            confirmText: "ตกลง",
+            cancelText: "ยกเลิก",
             onConfirm: closeModal,
             onCancel: closeModal
         });
@@ -48,6 +55,8 @@ function AssessmentContent() {
             title,
             message,
             isConfirmOnly: false,
+            confirmText: "ตกลง",
+            cancelText: "ยกเลิก",
             onConfirm: () => {
                 closeModal();
                 onConfirm();
@@ -189,7 +198,21 @@ function AssessmentContent() {
             const data = await response.json();
 
             if (response.ok) {
-                showAlert("สำเร็จ", "บันทึกผลการประเมินเรียบร้อยแล้ว");
+                setModalConfig({
+                    isOpen: true,
+                    title: "สำเร็จ",
+                    message: `บันทึกผลการประเมินเรียบร้อยแล้ว (HN: ${hn.trim()})`,
+                    isConfirmOnly: false,
+                    cancelText: "ปิด",
+                    confirmText: "ไปหน้าประวัติการประเมิน",
+                    onCancel: () => {
+                        closeModal();
+                    },
+                    onConfirm: () => {
+                        closeModal();
+                        router.push(`/history?hn=${encodeURIComponent(hn.trim())}`);
+                    }
+                });
             } else {
                 showAlert("ข้อผิดพลาด", `เกิดข้อผิดพลาด: ${data.error}`);
             }
@@ -214,6 +237,8 @@ function AssessmentContent() {
                 onConfirm={modalConfig.onConfirm}
                 onCancel={modalConfig.onCancel}
                 isConfirmOnly={modalConfig.isConfirmOnly}
+                confirmText={modalConfig.confirmText}
+                cancelText={modalConfig.cancelText}
             />
 
             {/* Main Content */}
@@ -229,7 +254,7 @@ function AssessmentContent() {
                         </Link>
                     </div>
 
-                    <h1 className="text-3xl md:text-4xl font-bold text-blue-800 mb-8 text-center mt-8">
+                    <h1 className="text-3xl md:text-4xl font-bold text-[#0e4a8f] mb-8 text-center mt-8">
                         แบบประเมิน
                     </h1>
 
@@ -237,7 +262,8 @@ function AssessmentContent() {
                         <div ref={resultRef} className="mb-8 text-center animate-fade-in w-full scroll-mt-24">
                             <p className="text-gray-600 text-lg mb-2">ผลการประเมินของคุณคือ:</p>
                             <div
-                                className={`text-3xl md:text-4xl font-extrabold text-white p-6 rounded-xl shadow-md inline-block w-full md:w-auto mb-6 ${result === "ให้ลุกนั่งบนเตียง" ? "bg-[#FF8042]" :
+                                onClick={() => setExerciseModalOpen(true)}
+                                className={`text-3xl md:text-4xl font-extrabold text-white p-6 rounded-xl shadow-md inline-block w-full md:w-auto mb-6 cursor-pointer hover:scale-105 transition-transform ${result === "ให้ลุกนั่งบนเตียง" ? "bg-[#FF8042]" :
                                         result === "ลุกนั่งข้างเตียง" ? "bg-[#FFBB28]" :
                                             result === "ยืนและลุกเดิน" ? "bg-[#00C49F]" :
                                                 "bg-gray-400"
@@ -247,10 +273,11 @@ function AssessmentContent() {
                                 }}
                             >
                                 {result}
+                                <p className="text-sm font-normal mt-2 opacity-80">กดเพื่อดูแนวทางการปฏิบัติ</p>
                             </div>
 
                             <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 max-w-md mx-auto">
-                                <h3 className="text-lg font-bold text-blue-800 mb-4">บันทึกผลการประเมิน</h3>
+                                <h3 className="text-lg font-bold text-[#0e4a8f] mb-4">บันทึกผลการประเมิน</h3>
                                 <div className="flex flex-col space-y-4">
                                     <input
                                         type="text"
@@ -267,7 +294,7 @@ function AssessmentContent() {
                                     <button
                                         onClick={handleSaveClick}
                                         disabled={isSaving}
-                                        className={`w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow transition-colors ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        className={`w-full bg-[#5dae28] hover:bg-[#4a8c20] text-white font-bold py-2 px-4 rounded-lg shadow transition-colors ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     >
                                         {isSaving ? 'กำลังบันทึก...' : 'บันทึกผล'}
                                     </button>
@@ -303,13 +330,18 @@ function AssessmentContent() {
                     <div className="flex flex-col items-center justify-center space-y-6 mt-10">
                         <button
                             onClick={calculateResult}
-                            className="bg-blue-600 hover:bg-blue-700 text-white text-xl font-bold py-3 px-12 rounded-full shadow-lg transition-transform transform hover:scale-105"
+                            className="bg-[#0e4a8f] hover:bg-[#0a3a72] text-white text-xl font-bold py-3 px-12 rounded-full shadow-lg transition-transform transform hover:scale-105"
                         >
                             ประเมินผล
                         </button>
                     </div>
                 </div>
             </main>
+
+            <ExerciseModal
+                isOpen={exerciseModalOpen}
+                onClose={() => setExerciseModalOpen(false)}
+            />
         </div>
     );
 }

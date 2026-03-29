@@ -58,7 +58,7 @@ export default function StatisticsPage() {
                                     ย้อนกลับ
                                 </Link>
                             </div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-blue-800 text-center w-full">
+                            <h1 className="text-2xl md:text-3xl font-bold text-[#0e4a8f] text-center w-full">
                                 สถิติการประเมินภาพรวม
                             </h1>
                         </div>
