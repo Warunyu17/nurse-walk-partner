@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
@@ -14,6 +14,17 @@ const TOTAL_PAGES = 4;
 const ExerciseModal: React.FC<ExerciseModalProps> = ({ isOpen, onClose }) => {
     const router = useRouter();
     const [currentPage, setCurrentPage] = useState(0);
+
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [isOpen]);
 
     if (!isOpen) return null;
 

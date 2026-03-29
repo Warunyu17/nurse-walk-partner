@@ -33,19 +33,28 @@ export async function POST(request: Request) {
         const normalizedHn = hn.trim();
         const assessedAt = new Date().toISOString();
 
-        // Always keep only the latest result in `assessments`
-        const { data, error } = await supabase
-            .from('assessments')
-            .upsert({
-                hn: normalizedHn,
-                answers,
-                result,
-                scores,
-                created_at: assessedAt,
-            }, { onConflict: 'hn' })
-            .select()
-            .single();
+        // Run upsert + history lookup in parallel to cut latency
+        const [upsertResult, historyResult] = await Promise.all([
+            supabase
+                .from('assessments')
+                .upsert({
+                    hn: normalizedHn,
+                    answers,
+                    result,
+                    scores,
+                    created_at: assessedAt,
+                }, { onConflict: 'hn' })
+                .select()
+                .single(),
+            supabase
+                .from('assessment_history')
+                .select('assessment_no')
+                .eq('hn', normalizedHn)
+                .order('assessment_no', { ascending: false })
+                .limit(1),
+        ]);
 
+        const { data, error } = upsertResult;
         if (error) {
             throw error;
         }
@@ -53,12 +62,7 @@ export async function POST(request: Request) {
         // Save every assessment attempt into history.
         // This is best-effort so the latest assessment is never blocked if history table is not ready.
         let warning: string | undefined;
-        const { data: lastHistoryRows, error: lastHistoryError } = await supabase
-            .from('assessment_history')
-            .select('assessment_no')
-            .eq('hn', normalizedHn)
-            .order('assessment_no', { ascending: false })
-            .limit(1);
+        const { data: lastHistoryRows, error: lastHistoryError } = historyResult;
 
         if (lastHistoryError) {
             warning = 'saved_latest_only';
@@ -130,7 +134,7 @@ export async function GET(request: Request) {
 
         const { data, error } = await supabase
             .from('assessments')
-            .select('*')
+            .select('hn, answers, result, scores, created_at')
             .eq('hn', normalizedHn)
             .single();
 

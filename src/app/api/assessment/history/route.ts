@@ -47,7 +47,7 @@ export async function GET(request: Request) {
 
         const { data: historyRows, error: historyError } = await supabase
             .from('assessment_history')
-            .select('*')
+            .select('id, hn, assessment_no, assessment_date, result, answers, scores, note, created_at')
             .eq('hn', normalizedHn)
             .order('assessment_no', { ascending: false });
 
@@ -64,7 +64,7 @@ export async function GET(request: Request) {
 
         const { data: latestAssessment, error: latestError } = await supabase
             .from('assessments')
-            .select('*')
+            .select('id, hn, created_at, result, answers, scores')
             .eq('hn', normalizedHn)
             .single();
 

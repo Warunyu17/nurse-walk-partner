@@ -29,8 +29,8 @@ export async function GET() {
 
         const response = NextResponse.json({ success: true, data: formattedStats }, { status: 200 });
 
-        // Disable caching to ensure real-time updates when navigating back from edit
-        response.headers.set('Cache-Control', 'no-store, max-age=0');
+        // Allow short-lived cache to reduce DB hits; revalidate in background
+        response.headers.set('Cache-Control', 'public, s-maxage=10, stale-while-revalidate=30');
 
         return response;
     } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
