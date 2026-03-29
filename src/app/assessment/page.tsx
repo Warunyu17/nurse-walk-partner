@@ -42,7 +42,7 @@ function AssessmentContent() {
             title,
             message,
             isConfirmOnly: true,
-            confirmText: "ตกลง",
+            confirmText: "ปิด",
             cancelText: "ยกเลิก",
             onConfirm: closeModal,
             onCancel: closeModal
@@ -158,7 +158,7 @@ function AssessmentContent() {
                 if (checkResponse.ok) {
                     const checkData = await checkResponse.json();
                     if (checkData.data) {
-                        showAlert("แจ้งเตือน", "มีข้อมูลการประเมินในระบบแล้ว");
+                        showAlert("แจ้งเตือน", `HN: ${hn.trim()} มีข้อมูลการประเมินในระบบแล้ว`);
                         setIsSaving(false);
                         return;
                     }

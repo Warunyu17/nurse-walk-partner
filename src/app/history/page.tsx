@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import Navbar from '../../components/Navbar';
+import Modal from '../../components/Modal';
 import ExerciseModal from '../../components/ExerciseModal';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -56,8 +57,17 @@ function HistoryContent() {
     const [warning, setWarning] = useState<string | null>(null);
     const [historyData, setHistoryData] = useState<HistoryResponse["data"] | null>(null);
     const [exerciseModalOpen, setExerciseModalOpen] = useState(false);
+    const [modalConfig, setModalConfig] = useState({ isOpen: false, title: "", message: "" });
     const router = useRouter();
     const searchParams = useSearchParams();
+
+    const showAlert = (title: string, message: string) => {
+        setModalConfig({ isOpen: true, title, message });
+    };
+
+    const closeModal = () => {
+        setModalConfig(prev => ({ ...prev, isOpen: false }));
+    };
 
     const searchByHn = useCallback(async (hnValue: string) => {
         if (!hnValue.trim()) return;
@@ -77,10 +87,10 @@ function HistoryContent() {
                     setWarning("แสดงผลเฉพาะข้อมูลล่าสุด เนื่องจากยังไม่สามารถอ่านตารางประวัติได้");
                 }
             } else {
-                setError(data.error || "ไม่พบข้อมูลในระบบ");
+                showAlert("แจ้งเตือน", data.error || "ไม่พบข้อมูลในระบบ กรุณาลองใหม่อีกครั้ง");
             }
         } catch {
-            setError("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+            showAlert("ข้อผิดพลาด", "เกิดข้อผิดพลาดในการเชื่อมต่อ");
         } finally {
             setLoading(false);
         }
@@ -151,7 +161,6 @@ function HistoryContent() {
                                     {loading ? 'ค้นหา...' : 'ค้นหา'}
                                 </button>
                             </div>
-                            {error && <p className="text-red-500 mt-2 text-center">{error}</p>}
                             {warning && <p className="text-amber-600 mt-2 text-center">{warning}</p>}
                         </form>
 
@@ -207,6 +216,15 @@ function HistoryContent() {
                     </section>
                 </div>
             </main >
+
+            <Modal
+                isOpen={modalConfig.isOpen}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                onConfirm={closeModal}
+                isConfirmOnly={true}
+                confirmText="ปิด"
+            />
 
             <ExerciseModal
                 isOpen={exerciseModalOpen}
